@@ -1,15 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import DevPage from '@/pages/DevPage';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Root → redirect to /dev so opening localhost shows the UI showcase */}
-        <Route path="/" element={<Navigate to="/dev" replace />} />
-        <Route path="/dev" element={<DevPage />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      {/* Root → redirect to /en/dev (default language) */}
+      <Route path="/" element={<Navigate to="/en/dev" replace />} />
+
+      {/* Routes with language prefix — :lang will be 'en' or 'ar' */}
+      <Route path="/:lang/dev" element={<DevPage />} />
+
+      {/* Catch-all → redirect to default */}
+      <Route path="*" element={<Navigate to="/en/dev" replace />} />
+    </Routes>
   );
 }
 

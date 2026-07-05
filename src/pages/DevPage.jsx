@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Calendar, Car, DollarSign, Star, Bell, Search } from 'lucide-react';
+import { Calendar, Car, DollarSign, Star, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // UI primitives
 import {
@@ -30,13 +32,38 @@ function DevPage() {
   const [toggleOff, setToggleOff] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
+  // i18n + language hooks
+  const { t, ready } = useTranslation();
+  const { lang, toggleLanguage } = useLanguage();
+
+  // Wait for translations to load before rendering
+  if (!ready) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-gray-500">Loading translations…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-surface-page min-h-screen p-8">
       <div className="mx-auto max-w-5xl space-y-10">
         {/* Page header */}
         <header>
-          <h1 className="text-primary text-3xl font-bold">UI Primitives Showcase</h1>
-          <p className="mt-2 text-gray-600">Every component in every variant.</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-primary text-3xl font-bold">
+                {t('nav:dashboard')} — UI Showcase
+              </h1>
+              <p className="mt-2 text-gray-600">
+                {t('actions.save')} · {t('actions.cancel')} · {t('status.pending')}
+              </p>
+            </div>
+            <button onClick={toggleLanguage} className="btn-outline btn-sm flex items-center gap-2">
+              <Globe size={16} />
+              {lang === 'ar' ? 'EN' : 'AR'}
+            </button>
+          </div>
         </header>
 
         {/* 1. Brand colors */}

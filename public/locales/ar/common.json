@@ -1,0 +1,29 @@
+{
+  "actions": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "view": "عرض",
+    "create": "إنشاء",
+    "search": "بحث",
+    "filter": "تصفية",
+    "export": "تصدير",
+    "close": "إغلاق"
+  },
+  "status": {
+    "pending": "قيد الانتظار",
+    "confirmed": "مؤكد",
+    "in_progress": "قيد التنفيذ",
+    "cancelled": "ملغي",
+    "completed": "مكتمل",
+    "delayed": "متأخر",
+    "urgent": "عاجل"
+  },
+  "time": {
+    "today": "اليوم",
+    "week": "الأسبوع",
+    "month": "الشهر",
+    "all": "الكل"
+  }
+}
