@@ -13,3 +13,5 @@ export const NotificationsPage = lazy(() => import('../pages/NotificationsPage')
 export const RepairJobsPage = lazy(() => import('../pages/RepairJobsPage'));
 export const ReviewsPage = lazy(() => import('../pages/ReviewsPage'));
 export const SettingsPage = lazy(() => import('../pages/SettingsPage'));
+export const LoginPage = lazy(() => import('../pages/AuthPage/LoginPage'));
+export const RegisterPage = lazy(() => import('../pages/AuthPage/RegisterPage'));

@@ -25,5 +25,30 @@
     "week": "Week",
     "month": "Month",
     "all": "All"
+  },
+
+  "login": {
+    "title": "Welcome back",
+    "subtitle": "Sign in to your dashboard",
+    "email": "Email address",
+    "password": "Password",
+    "submit": "Sign in",
+    "loading": "Signing in…",
+    "noAccount": "Don't have an account?",
+    "registerLink": "Create one"
+  },
+  "register": {
+    "title": "Create your account",
+    "subtitle": "Get started with your dashboard",
+    "name": "Full name",
+    "email": "Email address",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "submit": "Create account",
+    "loading": "Creating account…",
+    "hasAccount": "Already have an account?",
+    "loginLink": "Sign in",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters"
   }
 }

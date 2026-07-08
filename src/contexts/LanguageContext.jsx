@@ -19,6 +19,7 @@ export function LanguageProvider({ children }) {
   const urlLang = location.pathname.split('/')[1];
   const initialLang = urlLang === 'ar' ? 'ar' : 'en';
   const [lang, setLang] = useState(initialLang);
+  const dir = urlLang === 'ar' ? 'rtl' : 'ltr';
 
   // Sync i18next + <html> tag whenever the URL language changes
   useEffect(() => {
@@ -46,7 +47,7 @@ export function LanguageProvider({ children }) {
     changeLanguage(lang === 'ar' ? 'en' : 'ar');
   }, [lang, changeLanguage]);
 
-  const value = { lang, changeLanguage, toggleLanguage };
+  const value = { lang, dir, changeLanguage, toggleLanguage };
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
