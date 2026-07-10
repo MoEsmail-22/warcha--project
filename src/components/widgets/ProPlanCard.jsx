@@ -1,18 +1,24 @@
-/**
- * ProPlanCard — sidebar footer card.
- */
 import { Star } from 'lucide-react';
+import { useAppTranslation } from '../../hooks/useAppTranslation';
 
-export function ProPlanCard() {
+export default function ProPlanCard() {
+  const { t } = useAppTranslation('nav');
+
   return (
-    <div className="rounded-lg bg-white/5 p-4 text-white">
+    <div className="rounded-xl bg-[#0A3D4A] p-3 shadow-[0_4px_12px_rgba(0,0,0,0.15)] ring-1 ring-white/5">
       <div className="flex items-center gap-2">
-        <Star size={16} className="text-accent" fill="currentColor" />
-        <span className="text-sm font-semibold">Pro Plan</span>
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/20">
+          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-white">
+            {t('proPlan.title', { defaultValue: 'Pro Plan' })}
+          </p>
+          <p className="truncate text-xs text-gray-400">
+            {t('proPlan.subtitle', { defaultValue: 'Renews Jun 2026 · 12 jobs left today' })}
+          </p>
+        </div>
       </div>
-      <p className="mt-1 text-xs text-gray-300">Renews Jun 2026 · 12 jobs left today</p>
     </div>
   );
 }
-
-export default ProPlanCard;

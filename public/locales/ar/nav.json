@@ -1,14 +1,18 @@
 {
+  "brand": {
+    "name": "ورشة",
+    "subtitle": "أحمد أوتو سيرفس"
+  },
   "dashboard": "لوحة التحكم",
-  "jobsBoard": "لوحة المهام",
+  "jobs": "لوحة المهام",
   "bookings": "الحجوزات",
   "quotes": "عروض الأسعار",
   "customers": "العملاء",
-  "services": "الخدمات والأسعار",
+  "services": "الخدمات والتسعير",
   "reviews": "التقييمات",
   "settings": "الإعدادات",
-  "vehicles": "السيرات",
-  "technicians": "الفنيون",
-  "notifications": "الإشعارات",
-  "repairJobs": "مهام الإصلاح"
+  "proPlan": {
+    "title": "باقة برو",
+    "subtitle": "تتجدد يونيو 2026 · 12 مهمة متبقية اليوم"
+  }
 }
