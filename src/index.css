@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+@config '../tailwind.config.js';
+
+/* Your custom base styles only */
+:root {
+  --border: #e5e7eb;
+}
+
+body {
+  @apply bg-surface-page text-gray-900 antialiased;
+  font-family: 'Inter', 'Cairo', 'Tajawal', system-ui, sans-serif;
+}
+
+/* RTL adjustments */
+[dir='rtl'] body {
+  font-family: 'Cairo', 'Tajawal', 'Inter', system-ui, sans-serif;
+}

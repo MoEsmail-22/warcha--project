@@ -1,0 +1,18 @@
+{
+  "brand": {
+    "name": "Warsha",
+    "subtitle": "Ahmed Auto Service"
+  },
+  "dashboard": "Dashboard",
+  "jobs": "Jobs Board",
+  "bookings": "Bookings",
+  "quotes": "Quotes",
+  "customers": "Customers",
+  "services": "Services & Pricing",
+  "reviews": "Reviews",
+  "settings": "Settings",
+  "proPlan": {
+    "title": "Pro Plan",
+    "subtitle": "Renews Jun 2026 · 12 jobs left today"
+  }
+}
