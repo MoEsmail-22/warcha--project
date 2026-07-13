@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Wrench, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import navItems from '../../utils/navItems';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { useLanguage } from '../../contexts/LanguageContext';

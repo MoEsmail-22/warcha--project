@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Menu } from 'lucide-react';
 import { LanguageProvider } from '../../contexts/LanguageContext';
 import { BookingsProvider } from '../../contexts/BookingsContext';
 import { VehiclesProvider } from '../../contexts/VehiclesContext';

@@ -1,5 +1,5 @@
-import { use, useState } from 'react';
-import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
