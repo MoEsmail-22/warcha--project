@@ -1,16 +1,16 @@
-import { NavLink } from 'react-router-dom';
-import { Wrench, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { NavLink, useParams } from 'react-router-dom';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import navItems from '../../utils/navItems';
 import { useAppTranslation } from '../../hooks/useAppTranslation';
 import { useLanguage } from '../../contexts/LanguageContext';
 import ProPlanCard from '../widgets/ProPlanCard';
 import logo from '@/assets/warsha_logo.png';
-import { useParams } from 'react-router-dom';
 
 /**
  * Sidebar
  * - Desktop: fixed left rail (right in RTL), collapsible to icon-only
  * - Mobile: hidden by default, slides in as drawer with backdrop
+ * - Custom dark scrollbar via .sidebar-scroll class
  *
  * Props:
  *   collapsed   boolean   — desktop icon-only mode
@@ -64,7 +64,7 @@ export default function Sidebar({
         >
           <div className="flex items-center gap-1 overflow-hidden">
             <div className="flex w-14 shrink-0 items-center justify-center rounded-full shadow-md">
-              <img src={logo} alt="Logo" /> {/* <Wrench className="h-5 w-5 text-white" /> */}
+              <img src={logo} alt="Logo" />
             </div>
             {!collapsed && (
               <div className="min-w-0">
@@ -88,8 +88,8 @@ export default function Sidebar({
           </button>
         </div>
 
-        {/* ===== Nav items ===== */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+        {/* ===== Nav items — uses .sidebar-scroll for custom scrollbar ===== */}
+        <nav className="sidebar-scroll flex-1 overflow-y-auto px-3 py-4">
           <ul className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -97,14 +97,13 @@ export default function Sidebar({
                 <li key={item.key}>
                   <NavLink
                     to={`/${lang}/${item.path}`}
-                    end={item.path === '/dev'}
+                    end={item.path === ''}
                     onClick={onMobileClose}
                     title={collapsed ? t(item.labelKey) : undefined}
                     className={({ isActive }) =>
                       [
                         'group relative flex items-center rounded-lg text-sm font-medium transition-colors',
                         collapsed ? 'justify-center px-2 py-3' : 'px-3 py-2.5',
-                        // active vs inactive
                         isActive
                           ? 'border border-[#FF7905] text-[#FF7905] shadow-sm'
                           : 'text-[#FF7905] hover:bg-white/10',
@@ -167,8 +166,3 @@ export default function Sidebar({
     </>
   );
 }
-
-/**
- * Safe wrapper — some layouts (auth pages) may not have LanguageProvider.
- * Falls back to LTR instead of crashing.
- */

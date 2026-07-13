@@ -1,7 +1,17 @@
 /**
  * Button — primary action button.
- * Variants: primary | accent | outline | ghost | danger
- * Sizes:    sm | md | lg
+ *
+ * Uses .btn-* classes from index.css (Phase 1 design):
+ *   - primary  → teal background, white text
+ *   - accent   → orange background, white text
+ *   - outline  → white bg, gray border
+ *   - ghost    → no background, subtle hover
+ *   - danger   → red background
+ *
+ * Sizes: sm | md | lg
+ *
+ * Accepts all native <button> props (onClick, disabled, type, etc.).
+ * The className prop merges via cn() so parents can override any class.
  */
 import { cn } from '@/utils/cn';
 
