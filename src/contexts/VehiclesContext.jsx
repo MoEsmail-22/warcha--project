@@ -1,42 +1,90 @@
-import { createContext, useContext, useState } from 'react';
+/**
+ * VehiclesContext — provides vehicles data + stage update actions.
+ *
+ * Used by: Dashboard page (cars in service count), Vehicles page (table/grid).
+ *
+ * Exposes:
+ *   { data, loading, error, addVehicle, updateVehicle, updateStage, deleteVehicle }
+ */
+import { createContext, useContext, useReducer, useEffect } from 'react';
+import mockVehicles from '@/mocks/vehicles.json';
 
 const VehiclesContext = createContext(null);
 
-const mockVehicles = [
-  { id: 1, make: 'Toyota', model: 'Camry', year: 2020, plate: 'ABC-1234', status: 'in_service' },
-  { id: 2, make: 'Honda', model: 'Civic', year: 2019, plate: 'DEF-5678', status: 'in_service' },
-  { id: 3, make: 'Hyundai', model: 'Elantra', year: 2021, plate: 'GHI-9012', status: 'in_service' },
-  {
-    id: 4,
-    make: 'Kia',
-    model: 'Sportage',
-    year: 2022,
-    plate: 'JKL-3456',
-    status: 'awaiting_approval',
-  },
-  {
-    id: 5,
-    make: 'Nissan',
-    model: 'Sentra',
-    year: 2020,
-    plate: 'MNO-7890',
-    status: 'awaiting_approval',
-  },
-];
+const initialState = {
+  data: [],
+  loading: true,
+  error: null,
+};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'LOAD_SUCCESS':
+      return { data: action.payload, loading: false, error: null };
+    case 'LOAD_ERROR':
+      return { ...state, loading: false, error: action.payload };
+    case 'ADD_VEHICLE':
+      return { ...state, data: [action.payload, ...state.data] };
+    case 'UPDATE_VEHICLE':
+      return {
+        ...state,
+        data: state.data.map((v) =>
+          v.id === action.payload.id ? { ...v, ...action.payload } : v
+        ),
+      };
+    case 'UPDATE_STAGE':
+      return {
+        ...state,
+        data: state.data.map((v) =>
+          v.id === action.payload.id ? { ...v, stage: action.payload.stage } : v
+        ),
+      };
+    case 'DELETE_VEHICLE':
+      return {
+        ...state,
+        data: state.data.filter((v) => v.id !== action.payload),
+      };
+    default:
+      return state;
+  }
+}
 
 export function VehiclesProvider({ children }) {
-  const [vehicles] = useState(mockVehicles);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
-  const carsInService = vehicles.filter((v) => v.status === 'in_service');
-  const awaitingApproval = vehicles.filter((v) => v.status === 'awaiting_approval');
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        dispatch({ type: 'LOAD_SUCCESS', payload: mockVehicles });
+      } catch (err) {
+        dispatch({ type: 'LOAD_ERROR', payload: err.message });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const addVehicle = (vehicle) =>
+    dispatch({ type: 'ADD_VEHICLE', payload: vehicle });
+  const updateVehicle = (id, updates) =>
+    dispatch({ type: 'UPDATE_VEHICLE', payload: { id, ...updates } });
+  const updateStage = (id, stage) =>
+    dispatch({ type: 'UPDATE_STAGE', payload: { id, stage } });
+  const deleteVehicle = (id) =>
+    dispatch({ type: 'DELETE_VEHICLE', payload: id });
 
   const value = {
-    vehicles,
-    carsInServiceCount: carsInService.length,
-    awaitingApprovalCount: awaitingApproval.length,
+    ...state,
+    addVehicle,
+    updateVehicle,
+    updateStage,
+    deleteVehicle,
   };
 
-  return <VehiclesContext.Provider value={value}>{children}</VehiclesContext.Provider>;
+  return (
+    <VehiclesContext.Provider value={value}>
+      {children}
+    </VehiclesContext.Provider>
+  );
 }
 
 export function useVehicles() {

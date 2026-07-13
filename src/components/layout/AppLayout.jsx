@@ -2,10 +2,6 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { LanguageProvider } from '../../contexts/LanguageContext';
-import { BookingsProvider } from '../../contexts/BookingsContext';
-import { VehiclesProvider } from '../../contexts/VehiclesContext';
-import { ReviewsProvider } from '../../contexts/ReviewsContext';
-import { RevenueProvider } from '../../contexts/RevenueContext';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { useAuth } from '../../contexts/AuthContext';
@@ -13,15 +9,7 @@ import { useAuth } from '../../contexts/AuthContext';
 export default function AppLayout() {
   return (
     <LanguageProvider>
-      <BookingsProvider>
-        <VehiclesProvider>
-          <ReviewsProvider>
-            <RevenueProvider>
-              <AppLayoutInner />
-            </RevenueProvider>
-          </ReviewsProvider>
-        </VehiclesProvider>
-      </BookingsProvider>
+      <AppLayoutInner />
     </LanguageProvider>
   );
 }
@@ -32,7 +20,7 @@ function AppLayoutInner() {
   const { user } = useAuth();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F0F8F7]">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       <Sidebar
         collapsed={collapsed}
         onCollapse={() => setCollapsed((c) => !c)}
@@ -41,6 +29,7 @@ function AppLayoutInner() {
       />
 
       <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Topbar — gets a hamburger button for mobile */}
         <Topbar onMenuClick={() => setMobileOpen(true)} user={user} />
 
         <main className="flex-1 overflow-y-auto p-6">
@@ -51,4 +40,5 @@ function AppLayoutInner() {
   );
 }
 
+// Default export for Topbar's mobile menu trigger if needed elsewhere
 export { AppLayoutInner };

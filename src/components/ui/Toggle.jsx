@@ -1,5 +1,7 @@
 /**
- * Toggle — on/off switch for settings.
+ * Toggle — on/off switch with proper proportions + RTL support.
+ * Track: 44px wide × 24px tall (standard iOS/Material size)
+ * Thumb: 20px circle, moves 20px when toggled (right in LTR, left in RTL)
  */
 import { cn } from '@/utils/cn';
 
@@ -26,17 +28,22 @@ export function Toggle({ checked, onChange, label, description, id, disabled }) 
           onChange={(e) => onChange?.(e.target.checked)}
           className="peer sr-only"
         />
+
+        {/* Track */}
         <span
           className={cn(
-            'h-6 w-11 rounded-full transition-colors',
+            'block h-6 w-11 rounded-full transition-colors duration-200',
             checked ? 'bg-primary' : 'bg-gray-300',
             disabled && 'cursor-not-allowed opacity-50'
           )}
         />
+
+        {/* Thumb — RTL-aware positioning + movement */}
         <span
           className={cn(
-            'absolute start-0.5 inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform',
-            checked ? 'translate-x-5' : 'translate-x-0'
+            'pointer-events-none absolute top-0.5 block h-5 w-5 rounded-full bg-white shadow-md transition-transform duration-200',
+            'ltr:left-0.5 rtl:right-0.5',
+            checked ? 'ltr:translate-x-5 rtl:-translate-x-5' : 'ltr:translate-x-0 rtl:translate-x-0'
           )}
         />
       </div>

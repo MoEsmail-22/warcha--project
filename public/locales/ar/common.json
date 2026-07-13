@@ -49,5 +49,16 @@
     "loginLink": "تسجيل الدخول",
     "passwordMismatch": "كلمتا المرور غير متطابقتين",
     "passwordTooShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل"
+  },
+  "trends": {
+    "vsYesterday": "عن الأمس",
+    "thisWeek": "هذا الأسبوع",
+    "thisMonth": "هذا الشهر",
+    "lastWeek": "الأسبوع الماضي",
+    "lastMonth": "الشهر الماضي",
+    "reviews": "تقييم",
+    "awaitingApproval": "بانتظار الموافقة",
+    "capacity": "السعة",
+    "vsLastWeek": "عن الأسبوع الماضي"
   }
 }

@@ -1,12 +1,18 @@
 /**
- * Table primitives — composable building blocks.
- * <Table><THead><TR><TH>...</TH></TR></THead><TBody>...</TBody></Table>
+ * Table primitives — composable building blocks for data tables.
+ *
+ * Style (Phase 1):
+ *   - Subtle border around the whole table
+ *   - Horizontal row dividers (thin, light gray)
+ *   - Light gray header background
+ *   - Uppercase dark gray header text
+ *   - text-start for RTL support
  */
 import { cn } from '@/utils/cn';
 
 export function Table({ className, children }) {
   return (
-    <table className={cn('w-full border-collapse text-left text-sm', className)}>{children}</table>
+    <table className={cn('w-full border-collapse text-start text-sm', className)}>{children}</table>
   );
 }
 
@@ -30,7 +36,7 @@ export function TH({ className, children }) {
   return (
     <th
       className={cn(
-        'px-4 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase',
+        'px-4 py-3 text-start text-xs font-semibold tracking-wide text-gray-500 uppercase',
         className
       )}
     >

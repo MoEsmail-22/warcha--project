@@ -1,30 +1,92 @@
-import { createContext, useContext, useState } from 'react';
+/**
+ * ReviewsContext — provides reviews data + reply/edit actions.
+ *
+ * Used by: Dashboard page (avg rating), Reviews page (list + reply flow).
+ *
+ * Exposes:
+ *   { data, loading, error, replyReview, editReply, deleteReview }
+ */
+import { createContext, useContext, useReducer, useEffect } from 'react';
+import mockReviews from '@/mocks/reviews.json';
 
 const ReviewsContext = createContext(null);
 
-const mockReviews = [
-  { id: 1, customer: 'Ahmed Ali', rating: 5, comment: 'Great service!' },
-  { id: 2, customer: 'Mohamed Salah', rating: 4, comment: 'Fast and professional.' },
-  { id: 3, customer: 'Sara Hassan', rating: 5, comment: 'Very happy with the repair.' },
-  { id: 4, customer: 'Omar Yasser', rating: 4, comment: 'Good communication.' },
-];
+const initialState = {
+  data: [],
+  loading: true,
+  error: null,
+};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'LOAD_SUCCESS':
+      return { data: action.payload, loading: false, error: null };
+    case 'LOAD_ERROR':
+      return { ...state, loading: false, error: action.payload };
+    case 'REPLY_REVIEW':
+      return {
+        ...state,
+        data: state.data.map((r) =>
+          r.id === action.payload.id
+            ? {
+                ...r,
+                replied: true,
+                replyText: action.payload.text,
+                replyTimestamp: new Date().toISOString(),
+              }
+            : r
+        ),
+      };
+    case 'EDIT_REPLY':
+      return {
+        ...state,
+        data: state.data.map((r) =>
+          r.id === action.payload.id
+            ? { ...r, replyText: action.payload.text }
+            : r
+        ),
+      };
+    case 'DELETE_REVIEW':
+      return {
+        ...state,
+        data: state.data.filter((r) => r.id !== action.payload),
+      };
+    default:
+      return state;
+  }
+}
 
 export function ReviewsProvider({ children }) {
-  const [reviews] = useState(mockReviews);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
-  const totalReviews = reviews.length;
-  const avgRating =
-    totalReviews === 0
-      ? 0
-      : Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews) * 10) / 10;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        dispatch({ type: 'LOAD_SUCCESS', payload: mockReviews });
+      } catch (err) {
+        dispatch({ type: 'LOAD_ERROR', payload: err.message });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const replyReview = (id, text) =>
+    dispatch({ type: 'REPLY_REVIEW', payload: { id, text } });
+  const editReply = (id, text) =>
+    dispatch({ type: 'EDIT_REPLY', payload: { id, text } });
+  const deleteReview = (id) =>
+    dispatch({ type: 'DELETE_REVIEW', payload: id });
 
   const value = {
-    reviews,
-    avgRating,
-    totalReviews,
+    ...state,
+    replyReview,
+    editReply,
+    deleteReview,
   };
 
-  return <ReviewsContext.Provider value={value}>{children}</ReviewsContext.Provider>;
+  return (
+    <ReviewsContext.Provider value={value}>{children}</ReviewsContext.Provider>
+  );
 }
 
 export function useReviews() {

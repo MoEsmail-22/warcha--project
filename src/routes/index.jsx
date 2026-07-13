@@ -4,6 +4,7 @@ import RouteFallback from '../components/ui/RouteFallback';
 import AppLayout from '../components/layout/AppLayout';
 import AuthLayout from '../components/layout/AuthLayout';
 import ProtectedRoute from './ProtectedRoute';
+import { LanguageProvider } from '../contexts/LanguageContext';
 import {
   DashboardPage,
   JobsBoardPage,
@@ -21,11 +22,12 @@ import {
   LoginPage,
   RegisterPage,
 } from './lazyPages';
+import DevPage from '../pages/DevPage'; // Direct import (not lazy) — it's a dev tool
 
 const withSuspense = (node) => <Suspense fallback={<RouteFallback />}>{node}</Suspense>;
 
 export const router = createBrowserRouter([
-  // ---------- Root redirect: "/" → "/en/dev" ----------
+  // ---------- Root redirect ----------
   {
     path: '/',
     loader: () => redirect('/en/dev'),
@@ -35,7 +37,13 @@ export const router = createBrowserRouter([
   {
     path: '/:lang',
     children: [
-      // ---- PUBLIC AUTH ROUTES ----
+      // ===== STANDALONE /dev ROUTE (no sidebar/topbar, but needs LanguageProvider) =====
+      {
+        path: 'dev',
+        element: <LanguageProvider>{withSuspense(<DevPage />)}</LanguageProvider>,
+      },
+
+      // ===== PUBLIC AUTH ROUTES =====
       {
         path: 'login',
         element: <AuthLayout>{withSuspense(<LoginPage />)}</AuthLayout>,
@@ -45,9 +53,8 @@ export const router = createBrowserRouter([
         element: <AuthLayout>{withSuspense(<RegisterPage />)}</AuthLayout>,
       },
 
-      // ---- PROTECTED APP ROUTES ----
+      // ===== PROTECTED APP ROUTES (with sidebar + topbar) =====
       {
-        path: 'dev', // your dashboard / UI showcase route
         element: (
           <ProtectedRoute>
             <AppLayout />
