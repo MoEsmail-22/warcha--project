@@ -13,7 +13,13 @@ const TREND_CLASSES = {
 
 export function StatCard({ icon, value, label, subtext, trend = 'neutral', onClick }) {
   return (
-    <div onClick={onClick} className={cn('card p-6', onClick && 'card-hover cursor-pointer')}>
+    <div
+      onClick={onClick}
+      className={cn(
+        'card rounded-xl bg-white p-6 shadow-sm',
+        onClick && 'card-hover cursor-pointer'
+      )}
+    >
       {icon && (
         <div className="bg-primary-50 text-primary mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg">
           {icon}

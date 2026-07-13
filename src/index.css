@@ -4,14 +4,29 @@
 /* Your custom base styles only */
 :root {
   --border: #e5e7eb;
+  --font-heading: 'Sora', system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --color-primary: #0e5c5b;
+  --color-text-dark: #15201f;
+  --color-text-muted: #5a6968;
 }
 
 body {
   @apply bg-surface-page text-gray-900 antialiased;
   font-family: 'Inter', 'Cairo', 'Tajawal', system-ui, sans-serif;
+  font-family: var(--font-body);
+  color: var(--color-text-dark);
 }
 
 /* RTL adjustments */
 [dir='rtl'] body {
   font-family: 'Cairo', 'Tajawal', 'Inter', system-ui, sans-serif;
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-body {
+  font-family: var(--font-body);
 }
