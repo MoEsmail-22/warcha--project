@@ -1,1 +1,39 @@
-﻿{}
+﻿{
+  "greeting": {
+    "morning": "صباح الخير",
+    "afternoon": "مساء الخير",
+    "evening": "مساء الخير",
+    "night": "ليلة هادئة"
+  },
+  "subtitle": "إليك ما يحدث في ورشتك اليوم.",
+  "newBooking": "حجز جديد",
+  "vsYesterday": "مقارنة بالأمس",
+  "awaitingApproval": "بانتظار الموافقة",
+  "reviews": "تقييم",
+  "kpi": {
+    "todaysBookings": "حجوزات اليوم",
+    "carsInService": "سيارات قيد الصيانة",
+    "revenueToday": "إيرادات اليوم",
+    "avgRating": "متوسط التقييم"
+  },
+  "schedule": {
+    "title": "جدول اليوم",
+    "viewAll": "عرض الكل",
+    "customer": "العميل",
+    "service": "الخدمة",
+    "time": "الوقت",
+    "status": "الحالة"
+  },
+  "revenue": {
+    "title": "إيرادات الأسبوع",
+    "subtitle": "نظرة عامة على الأرباح اليومية",
+    "totalLabel": "إجمالي الأسبوع"
+  },
+  "status": {
+    "pending": "قيد الانتظار",
+    "confirmed": "مؤكد",
+    "in_progress": "قيد التنفيذ",
+    "completed": "مكتمل",
+    "cancelled": "ملغي"
+  }
+}
