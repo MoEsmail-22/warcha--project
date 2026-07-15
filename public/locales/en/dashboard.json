@@ -35,5 +35,12 @@
     "in_progress": "In Progress",
     "completed": "Completed",
     "cancelled": "Cancelled"
+  },
+  "jobs": {
+    "title": "Jobs Board",
+    "subtitle": "Drag cars across stages as you work. Customers see updates live.",
+    "search": "Search bookings, customers, plates...",
+    "filters": "Filters",
+    "quotesPending": "quotes pending"
   }
 }

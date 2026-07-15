@@ -8,6 +8,8 @@ import { RevenueProvider } from '../../contexts/RevenueContext';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { useAuth } from '../../contexts/AuthContext';
+import { JobsProvider } from '../../contexts/JobsContext';
+import { QuotesProvider } from '../../contexts/QuotesContext';
 
 export default function AppLayout() {
   return (
@@ -16,7 +18,11 @@ export default function AppLayout() {
         <VehiclesProvider>
           <ReviewsProvider>
             <RevenueProvider>
-              <AppLayoutInner />
+              <JobsProvider>
+                <QuotesProvider>
+                  <AppLayoutInner />
+                </QuotesProvider>
+              </JobsProvider>
             </RevenueProvider>
           </ReviewsProvider>
         </VehiclesProvider>
