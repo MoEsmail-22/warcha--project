@@ -26,7 +26,6 @@
     "month": "Month",
     "all": "All"
   },
-
   "login": {
     "title": "Welcome back",
     "subtitle": "Sign in to your dashboard",
@@ -50,5 +49,16 @@
     "loginLink": "Sign in",
     "passwordMismatch": "Passwords do not match",
     "passwordTooShort": "Password must be at least 8 characters"
+  },
+  "trends": {
+    "vsYesterday": "vs yesterday",
+    "thisWeek": "this week",
+    "thisMonth": "this month",
+    "lastWeek": "last week",
+    "lastMonth": "last month",
+    "reviews": "reviews",
+    "awaitingApproval": "awaiting approval",
+    "capacity": "capacity",
+    "vsLastWeek": "vs last week"
   }
 }

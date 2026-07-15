@@ -1,5 +1,22 @@
+/**
+ * DevPage — /dev showcase route.
+ *
+ * Renders EVERY UI primitive + EVERY widget + the chart in one place.
+ * Living documentation for the design system.
+ */
 import { useState } from 'react';
-import { Calendar, Car, DollarSign, Star, Globe } from 'lucide-react';
+import {
+  Calendar,
+  Car,
+  DollarSign,
+  Star,
+  Globe,
+  Bell,
+  Search,
+  AlertTriangle,
+  RefreshCw,
+  Inbox,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -21,43 +38,98 @@ import {
   TD,
 } from '@/components/ui';
 
-// Widgets
-import { StatCard, ProPlanCard, RatingStars } from '@/components/widgets';
+// Widgets (Phase 4)
+import {
+  StatCard,
+  StatusBadge,
+  RatingStars,
+  DataTable,
+  CustomerCell,
+  EmptyState,
+  ErrorState,
+  SkeletonCard,
+  SkeletonStatCard,
+  ProPlanCard,
+  MiniTrend,
+} from '@/components/widgets';
+
+// Chart
+import { RevenueBarChart } from '@/components/charts';
 
 function DevPage() {
-  // State for the interactive demos
   const [modalOpen, setModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [toggleOn, setToggleOn] = useState(true);
   const [toggleOff, setToggleOff] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
-  // i18n + language hooks
-  const { t, ready } = useTranslation();
+  const { t } = useTranslation();
   const { lang, toggleLanguage } = useLanguage();
 
-  // Wait for translations to load before rendering
-  if (!ready) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">Loading translations…</p>
-      </div>
-    );
-  }
+  // Sample data for the chart
+  const chartData = [
+    { day: 'Mon', current: 5000 },
+    { day: 'Tue', current: 6000 },
+    { day: 'Wed', current: 4000 },
+    { day: 'Thu', current: 8000 },
+    { day: 'Fri', current: 10000 },
+    { day: 'Sat', current: 6000 },
+    { day: 'Sun', current: 3000 },
+  ];
+
+  // Sample data for the DataTable
+  const tableColumns = [
+    {
+      key: 'customer',
+      header: 'Customer',
+      render: (row) => (
+        <CustomerCell
+          name={row.customer.name}
+          initials={row.customer.initials}
+          secondary={row.vehicle.model}
+        />
+      ),
+    },
+    { key: 'service', header: 'Service' },
+    { key: 'time', header: 'Time' },
+    { key: 'status', header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+  ];
+  const tableData = [
+    {
+      id: 1,
+      customer: { name: 'Hazem M.', initials: 'HM' },
+      vehicle: { model: 'Toyota Corolla' },
+      service: 'Oil change',
+      time: '10:30 AM',
+      status: 'in_service',
+    },
+    {
+      id: 2,
+      customer: { name: 'Sara K.', initials: 'SK' },
+      vehicle: { model: 'Honda Civic' },
+      service: 'Brake repair',
+      time: '11:45 AM',
+      status: 'new',
+    },
+    {
+      id: 3,
+      customer: { name: 'Omar T.', initials: 'OT' },
+      vehicle: { model: 'Hyundai Elantra' },
+      service: 'Tire rotation',
+      time: '01:00 PM',
+      status: 'confirmed',
+    },
+  ];
 
   return (
     <div className="bg-surface-page min-h-screen p-8">
       <div className="mx-auto max-w-5xl space-y-10">
-        {/* Page header */}
+        {/* ===== HEADER ===== */}
         <header>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-primary text-3xl font-bold">
-                {t('nav:dashboard')} — UI Showcase
-              </h1>
-              <p className="mt-2 text-gray-600">
-                {t('actions.save')} · {t('actions.cancel')} · {t('status.pending')}
-              </p>
+              <h1 className="text-primary text-3xl font-bold">UI Primitives Showcase</h1>
+              <p className="mt-2 text-gray-600">Every component in every variant.</p>
             </div>
             <button onClick={toggleLanguage} className="btn-outline btn-sm flex items-center gap-2">
               <Globe size={16} />
@@ -65,8 +137,32 @@ function DevPage() {
             </button>
           </div>
         </header>
-
-        {/* 1. Brand colors */}
+        <Card>
+          <h2 className="mb-4 text-lg font-semibold">MiniTrend widget</h2>
+          <div className="space-y-3">
+            <div className="flex items-center gap-4">
+              <span className="w-40 text-sm text-gray-600">Positive (up):</span>
+              <MiniTrend value="+2 vs yesterday" trend="up" />
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="w-40 text-sm text-gray-600">Positive (up):</span>
+              <MiniTrend value="+18% this week" trend="up" />
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="w-40 text-sm text-gray-600">Negative (down):</span>
+              <MiniTrend value="-5% vs last week" trend="down" />
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="w-40 text-sm text-gray-600">Neutral (no arrow):</span>
+              <MiniTrend value="124 reviews" trend="neutral" showArrow={false} />
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="w-40 text-sm text-gray-600">Neutral (with arrow):</span>
+              <MiniTrend value="2 awaiting approval" trend="neutral" />
+            </div>
+          </div>
+        </Card>
+        ;{/* ===== 1. BRAND COLORS ===== */}
         <Card>
           <h2 className="mb-4 text-lg font-semibold">Brand colors</h2>
           <div className="flex flex-wrap gap-3">
@@ -84,8 +180,7 @@ function DevPage() {
             </div>
           </div>
         </Card>
-
-        {/* 2. Buttons */}
+        {/* ===== 2. BUTTONS ===== */}
         <Card>
           <h2 className="mb-4 text-lg font-semibold">Buttons</h2>
           <div className="mb-4">
@@ -110,29 +205,40 @@ function DevPage() {
             </div>
           </div>
         </Card>
-
-        {/* 3. Badges */}
+        {/* ===== 3. STATUS BADGES (old + new) ===== */}
         <Card>
-          <h2 className="mb-4 text-lg font-semibold">Badges</h2>
-          <div className="flex flex-wrap gap-2">
+          <h2 className="mb-4 text-lg font-semibold">Status badges</h2>
+          <p className="mb-2 text-xs tracking-wide text-gray-500 uppercase">
+            Old Badge (soft tints)
+          </p>
+          <div className="mb-4 flex flex-wrap gap-2">
             <Badge status="pending" />
             <Badge status="confirmed" />
             <Badge status="in_service" />
-            <Badge status="in_progress" />
             <Badge status="new" />
-            <Badge status="cancelled" />
             <Badge status="completed" />
-            <Badge status="delayed" />
-            <Badge status="urgent" />
-            <Badge status="draft" />
-            <Badge status="sent" />
-            <Badge status="accepted" />
-            <Badge status="rejected" />
-            <Badge status="expired" />
+          </div>
+          <p className="mb-2 text-xs tracking-wide text-gray-500 uppercase">
+            New StatusBadge (solid colors)
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <StatusBadge status="pending" />
+            <StatusBadge status="confirmed" />
+            <StatusBadge status="new" />
+            <StatusBadge status="in_service" />
+            <StatusBadge status="completed" />
+            <StatusBadge status="cancelled" />
+            <StatusBadge status="ready" />
+            <StatusBadge status="delayed" />
+            <StatusBadge status="urgent" />
+            <StatusBadge status="draft" />
+            <StatusBadge status="awaiting" />
+            <StatusBadge status="approved" />
+            <StatusBadge status="rejected" />
+            <StatusBadge status="expired" />
           </div>
         </Card>
-
-        {/* 4. Inputs */}
+        {/* ===== 4. INPUTS ===== */}
         <Card>
           <h2 className="mb-4 text-lg font-semibold">Inputs</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -153,8 +259,7 @@ function DevPage() {
             <Input placeholder="Disabled input" disabled />
           </div>
         </Card>
-
-        {/* 5. Select */}
+        {/* ===== 5. SELECT ===== */}
         <Card>
           <h2 className="mb-4 text-lg font-semibold">Select</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -174,8 +279,7 @@ function DevPage() {
             </Select>
           </div>
         </Card>
-
-        {/* 6. Toggle */}
+        {/* ===== 6. TOGGLE ===== */}
         <Card>
           <h2 className="mb-4 text-lg font-semibold">Toggle</h2>
           <div className="space-y-4">
@@ -199,8 +303,7 @@ function DevPage() {
             </div>
           </div>
         </Card>
-
-        {/* 7. Cards */}
+        {/* ===== 7. CARDS ===== */}
         <Card>
           <h2 className="mb-4 text-lg font-semibold">Cards</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -222,8 +325,7 @@ function DevPage() {
             </Card>
           </div>
         </Card>
-
-        {/* 8. StatCard widget */}
+        {/* ===== 8. StatCard widget ===== */}
         <Card>
           <h2 className="mb-4 text-lg font-semibold">StatCard widget (KPI cards)</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -257,8 +359,7 @@ function DevPage() {
             />
           </div>
         </Card>
-
-        {/* 9. RatingStars widget */}
+        {/* ===== 9. RatingStars widget ===== */}
         <Card>
           <h2 className="mb-4 text-lg font-semibold">RatingStars widget</h2>
           <div className="space-y-3">
@@ -284,8 +385,7 @@ function DevPage() {
             </div>
           </div>
         </Card>
-
-        {/* 10. ProPlanCard widget */}
+        {/* ===== 10. ProPlanCard widget ===== */}
         <Card>
           <h2 className="mb-4 text-lg font-semibold">ProPlanCard widget</h2>
           <p className="mb-4 text-sm text-gray-600">
@@ -295,10 +395,45 @@ function DevPage() {
             <ProPlanCard />
           </div>
         </Card>
-
-        {/* 11. Table */}
+        {/* ===== 11. DataTable widget ===== */}
         <Card>
-          <h2 className="mb-4 text-lg font-semibold">Table</h2>
+          <h2 className="mb-4 text-lg font-semibold">DataTable widget</h2>
+          <DataTable columns={tableColumns} data={tableData} rowKey="id" />
+        </Card>
+        {/* ===== 12. EmptyState widget ===== */}
+        <Card>
+          <h2 className="mb-4 text-lg font-semibold">EmptyState widget</h2>
+          <EmptyState
+            icon={<Inbox size={28} />}
+            title="No bookings today"
+            description="New bookings will appear here once customers schedule them."
+            action={<Button variant="primary">New booking</Button>}
+          />
+        </Card>
+        {/* ===== 13. ErrorState widget ===== */}
+        <Card>
+          <h2 className="mb-4 text-lg font-semibold">ErrorState widget</h2>
+          <ErrorState
+            title="Failed to load bookings"
+            description="Network error: could not reach the server."
+            onRetry={() => alert('Retrying...')}
+          />
+        </Card>
+        {/* ===== 14. SkeletonCard widget ===== */}
+        <Card>
+          <h2 className="mb-4 text-lg font-semibold">SkeletonCard widget (loading state)</h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <SkeletonStatCard />
+            <SkeletonStatCard />
+            <SkeletonStatCard />
+            <SkeletonStatCard />
+          </div>
+        </Card>
+        {/* ===== 15. RevenueBarChart ===== */}
+        <RevenueBarChart data={chartData} />
+        {/* ===== 16. Table (basic) ===== */}
+        <Card>
+          <h2 className="mb-4 text-lg font-semibold">Basic Table</h2>
           <div className="overflow-x-auto">
             <Table>
               <THead>
@@ -318,7 +453,7 @@ function DevPage() {
                   <TD>Oil change</TD>
                   <TD>10:30 AM</TD>
                   <TD>
-                    <Badge status="in_service" />
+                    <StatusBadge status="in_service" />
                   </TD>
                 </TR>
                 <TR>
@@ -326,40 +461,17 @@ function DevPage() {
                     <div className="font-medium text-gray-900">Sara K.</div>
                     <div className="text-xs text-gray-500">Honda Civic</div>
                   </TD>
-                  <TD>Brake inspection</TD>
+                  <TD>Brake repair</TD>
                   <TD>11:45 AM</TD>
                   <TD>
-                    <Badge status="new" />
-                  </TD>
-                </TR>
-                <TR>
-                  <TD>
-                    <div className="font-medium text-gray-900">Omar T.</div>
-                    <div className="text-xs text-gray-500">Hyundai Elantra</div>
-                  </TD>
-                  <TD>Tire rotation</TD>
-                  <TD>01:00 PM</TD>
-                  <TD>
-                    <Badge status="confirmed" />
-                  </TD>
-                </TR>
-                <TR>
-                  <TD>
-                    <div className="font-medium text-gray-900">Nadia F.</div>
-                    <div className="text-xs text-gray-500">Kia Sportage</div>
-                  </TD>
-                  <TD>Engine diagnostic</TD>
-                  <TD>03:15 PM</TD>
-                  <TD>
-                    <Badge status="completed" />
+                    <StatusBadge status="new" />
                   </TD>
                 </TR>
               </TBody>
             </Table>
           </div>
         </Card>
-
-        {/* 12. Modal + Drawer */}
+        {/* ===== 17. Modal + Drawer ===== */}
         <Card>
           <h2 className="mb-4 text-lg font-semibold">Overlay components</h2>
           <p className="mb-4 text-sm text-gray-600">
@@ -433,13 +545,9 @@ function DevPage() {
             <p className="font-medium">Toyota Corolla — ABC-1234</p>
           </div>
           <div>
-            <p className="text-xs tracking-wide text-gray-500 uppercase">Service</p>
-            <p className="font-medium">Oil change + filter</p>
-          </div>
-          <div>
             <p className="text-xs tracking-wide text-gray-500 uppercase">Status</p>
             <div className="mt-1">
-              <Badge status="confirmed" />
+              <StatusBadge status="confirmed" />
             </div>
           </div>
         </div>

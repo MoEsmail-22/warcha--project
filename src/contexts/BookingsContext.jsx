@@ -1,4 +1,16 @@
-import { createContext, useContext, useState } from 'react';
+/**
+ * BookingsContext — provides bookings data + CRUD actions.
+ *
+ * Used by: Dashboard page (today's bookings count), Bookings page (table).
+ *
+ * Exposes:
+ *   { data, loading, error, addBooking, updateBooking, cancelBooking, deleteBooking }
+ *
+ * Usage in a page:
+ *   const { data: bookings, loading, error } = useBookings();
+ */
+import { createContext, useContext, useReducer, useEffect } from 'react';
+import mockBookings from '@/mocks/bookings.json';
 
 const BookingsContext = createContext(null);
 
@@ -421,7 +433,11 @@ export function BookingsProvider({ children }) {
     updateBookingStatus,
   };
 
-  return <BookingsContext.Provider value={value}>{children}</BookingsContext.Provider>;
+  return (
+    <BookingsContext.Provider value={value}>
+      {children}
+    </BookingsContext.Provider>
+  );
 }
 
 export function useBookings() {

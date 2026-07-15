@@ -1,25 +1,79 @@
+/**
+ * StatusBadge — colored pill for booking/job/quote/review statuses.
+ *
+ * Uses SOFT TINTS (light background + colored text) — matches Phase 1 design.
+ * Pill shape (rounded-full), white space-agnostic, works in LTR + RTL.
+ */
+import { cn } from '@/utils/cn';
+
 const STATUS_STYLES = {
-  pending: { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500', label: 'Pending' },
-  confirmed: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500', label: 'Confirmed' },
-  in_progress: {
-    bg: 'bg-green-100',
-    text: 'text-green-700',
-    dot: 'bg-green-500',
-    label: 'In Progress',
-  },
-  completed: { bg: 'bg-teal-100', text: 'text-teal-700', dot: 'bg-teal-600', label: 'Completed' },
-  cancelled: { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500', label: 'Cancelled' },
+  // Booking statuses — soft tints
+  pending: 'bg-status-pending/10 text-status-pending',
+  confirmed: 'bg-status-confirmed/10 text-status-confirmed',
+  cancelled: 'bg-status-cancelled/10 text-status-cancelled',
+  completed: 'bg-status-completed/10 text-status-completed',
+
+  // Job statuses
+  new: 'bg-accent/10 text-accent-dark',
+  in_progress: 'bg-status-completed/10 text-status-completed',
+  inProgress: 'bg-status-completed/10 text-status-completed',
+  in_service: 'bg-primary/10 text-primary-700',
+  ready: 'bg-primary/10 text-primary-700',
+  delayed: 'bg-status-delayed/10 text-status-delayed',
+  urgent: 'bg-status-urgent/10 text-status-urgent',
+
+  // Quote statuses
+  draft: 'bg-status-draft/10 text-status-draft',
+  awaiting: 'bg-status-pending/10 text-status-pending',
+  approved: 'bg-status-completed/10 text-status-completed',
+  rejected: 'bg-status-cancelled/10 text-status-cancelled',
+  expired: 'bg-gray-400/10 text-gray-500',
+
+  // Technician statuses
+  available: 'bg-status-completed/10 text-status-completed',
+  busy: 'bg-status-confirmed/10 text-status-confirmed',
+  break: 'bg-status-pending/10 text-status-pending',
+  off: 'bg-gray-400/10 text-gray-500',
 };
 
-export default function StatusBadge({ status }) {
-  const s = STATUS_STYLES[status] ?? STATUS_STYLES.pending;
+const DEFAULT_LABELS = {
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  cancelled: 'Cancelled',
+  completed: 'Completed',
+  new: 'New',
+  in_progress: 'In Progress',
+  inProgress: 'In Progress',
+  in_service: 'In Service',
+  ready: 'Ready',
+  delayed: 'Delayed',
+  urgent: 'Urgent',
+  draft: 'Draft',
+  awaiting: 'Awaiting',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  expired: 'Expired',
+  available: 'Available',
+  busy: 'Busy',
+  break: 'On Break',
+  off: 'Off',
+};
+
+export function StatusBadge({ status, children, className }) {
+  const styleClass = STATUS_STYLES[status] ?? 'bg-gray-400/10 text-gray-500';
+  const label = children ?? DEFAULT_LABELS[status] ?? status;
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${s.bg} ${s.text}`}
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium',
+        styleClass,
+        className
+      )}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
-      {s.label}
+      {label}
     </span>
   );
 }
+
+export default StatusBadge;
