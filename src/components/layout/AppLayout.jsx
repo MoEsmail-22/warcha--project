@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Menu } from 'lucide-react';
 import { LanguageProvider } from '../../contexts/LanguageContext';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { useAuth } from '../../contexts/AuthContext';
+import { JobsProvider } from '../../contexts/JobsContext';
+import { QuotesProvider } from '../../contexts/QuotesContext';
 
 export default function AppLayout() {
   return (

@@ -1,94 +1,125 @@
-/**
- * QuotesContext — provides quotes data + status-change actions.
- *
- * Used by: Quotes page (table + multi-step create modal), Repair Jobs page (link).
- *
- * Exposes:
- *   { data, loading, error, addQuote, updateQuote, sendQuote, acceptQuote,
- *     rejectQuote, deleteQuote }
- */
-import { createContext, useContext, useReducer, useEffect } from 'react';
-import mockQuotes from '@/mocks/quotes.json';
+import { createContext, useContext, useState } from 'react';
 
 const QuotesContext = createContext(null);
 
-const initialState = {
-  data: [],
-  loading: true,
-  error: null,
-};
+const mockRecentQuotes = [
+  {
+    id: 'Q-2401',
+    customer: { name: 'Omar T.', initials: 'OT', avatarColor: '#3B82F6' },
+    vehicle: 'Kia Sportage',
+    service: 'A/C repair',
+    amount: 1850,
+    status: 'sent',
+    sentAt: 'Jul 12, 2026',
+  },
+  {
+    id: 'Q-2402',
+    customer: { name: 'Youssef H.', initials: 'YH', avatarColor: '#3B82F6' },
+    vehicle: 'Honda Civic',
+    service: 'Oil + filter',
+    amount: 470,
+    status: 'accepted',
+    sentAt: 'Jul 11, 2026',
+  },
+  {
+    id: 'Q-2403',
+    customer: { name: 'Mostafa R.', initials: 'MR', avatarColor: '#3B82F6' },
+    vehicle: 'Chevrolet Optra',
+    service: 'Suspension',
+    amount: 2400,
+    status: 'accepted',
+    sentAt: 'Jul 10, 2026',
+  },
+  {
+    id: 'Q-2404',
+    customer: { name: 'Laila S.', initials: 'LS', avatarColor: '#3B82F6' },
+    vehicle: 'Toyota Yaris',
+    service: 'Battery',
+    amount: 1100,
+    status: 'rejected',
+    sentAt: 'Jul 09, 2026',
+  },
+];
 
-function reducer(state, action) {
-  switch (action.type) {
-    case 'LOAD_SUCCESS':
-      return { data: action.payload, loading: false, error: null };
-    case 'LOAD_ERROR':
-      return { ...state, loading: false, error: action.payload };
-    case 'ADD_QUOTE':
-      return { ...state, data: [action.payload, ...state.data] };
-    case 'UPDATE_QUOTE':
-      return {
-        ...state,
-        data: state.data.map((q) =>
-          q.id === action.payload.id ? { ...q, ...action.payload } : q
-        ),
-      };
-    case 'SET_QUOTE_STATUS':
-      return {
-        ...state,
-        data: state.data.map((q) =>
-          q.id === action.payload.id ? { ...q, status: action.payload.status } : q
-        ),
-      };
-    case 'DELETE_QUOTE':
-      return {
-        ...state,
-        data: state.data.filter((q) => q.id !== action.payload),
-      };
-    default:
-      return state;
-  }
-}
+// Default line items for a new quote
+const defaultLineItems = [
+  { id: 1, label: 'Oil change (labor + 5W-30)', amount: 250 },
+  { id: 2, label: 'Oil filter replacement', amount: 120 },
+  { id: 3, label: 'Air filter (worn out)', amount: 190 },
+];
 
 export function QuotesProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [recentQuotes, setRecentQuotes] = useState(mockRecentQuotes);
+  const [lineItems, setLineItems] = useState(defaultLineItems);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      try {
-        dispatch({ type: 'LOAD_SUCCESS', payload: mockQuotes });
-      } catch (err) {
-        dispatch({ type: 'LOAD_ERROR', payload: err.message });
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const addQuote = (quote) => dispatch({ type: 'ADD_QUOTE', payload: quote });
-  const updateQuote = (id, updates) =>
-    dispatch({ type: 'UPDATE_QUOTE', payload: { id, ...updates } });
-  const sendQuote = (id) =>
-    dispatch({ type: 'SET_QUOTE_STATUS', payload: { id, status: 'sent' } });
-  const acceptQuote = (id) =>
-    dispatch({ type: 'SET_QUOTE_STATUS', payload: { id, status: 'accepted' } });
-  const rejectQuote = (id) =>
-    dispatch({ type: 'SET_QUOTE_STATUS', payload: { id, status: 'rejected' } });
-  const deleteQuote = (id) =>
-    dispatch({ type: 'DELETE_QUOTE', payload: id });
-
-  const value = {
-    ...state,
-    addQuote,
-    updateQuote,
-    sendQuote,
-    acceptQuote,
-    rejectQuote,
-    deleteQuote,
+  // ---- Line item CRUD ----
+  const addLineItem = () => {
+    setLineItems((prev) => [...prev, { id: Date.now(), label: '', amount: 0 }]);
   };
 
-  return (
-    <QuotesContext.Provider value={value}>{children}</QuotesContext.Provider>
-  );
+  const updateLineItem = (id, field, value) => {
+    setLineItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, [field]: field === 'amount' ? Number(value) || 0 : value }
+          : item
+      )
+    );
+  };
+
+  const removeLineItem = (id) => {
+    setLineItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // ---- Send quote to customer ----
+  const sendQuote = ({ customer, vehicle }) => {
+    const total = lineItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+    const newQuote = {
+      id: `Q-${2400 + recentQuotes.length + 1}`,
+      customer: {
+        name: customer || 'Walk-in customer',
+        initials:
+          customer
+            ?.split(' ')
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2) ?? 'WC',
+        avatarColor: '#3B82F6',
+      },
+      vehicle: vehicle || '—',
+      service:
+        lineItems
+          .map((i) => i.label)
+          .filter(Boolean)
+          .join(', ') || 'Custom quote',
+      amount: total,
+      status: 'sent',
+      sentAt: new Date().toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    };
+    setRecentQuotes((prev) => [newQuote, ...prev]);
+    // Reset line items
+    setLineItems(defaultLineItems);
+    return newQuote;
+  };
+
+  const total = lineItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+
+  const value = {
+    recentQuotes,
+    lineItems,
+    total,
+    addLineItem,
+    updateLineItem,
+    removeLineItem,
+    sendQuote,
+  };
+
+  return <QuotesContext.Provider value={value}>{children}</QuotesContext.Provider>;
 }
 
 export function useQuotes() {

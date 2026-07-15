@@ -1,1 +1,26 @@
-﻿{}
+﻿{
+  "title": "عروض الأسعار",
+  "subtitle": "أرسل عروض أسعار مفصّلة للعملاء للموافقة قبل القيام بأعمال إضافية.",
+  "buildQuote": "إنشاء عرض سعر",
+  "buildQuoteSubtitle": "أضف بنودًا وأرسل للموافقة",
+  "customerName": "اسم العميل",
+  "customerPlaceholder": "ابحث أو أدخل اسمًا",
+  "vehicle": "المركبة",
+  "lineItems": "البنود",
+  "items": "بند",
+  "itemPlaceholder": "وصف الخدمة",
+  "noItems": "لا توجد بنود بعد. اضغط \"إضافة بند\" للبدء.",
+  "addLineItem": "إضافة بند",
+  "total": "الإجمالي",
+  "sendToCustomer": "إرسال للعميل",
+  "recentQuotes": "عروض الأسعار الأخيرة",
+  "searchQuotes": "ابحث في العروض...",
+  "noQuotes": "لا توجد عروض.",
+  "status": {
+    "sent": "أُرسل - بانتظار الرد",
+    "accepted": "تمت الموافقة",
+    "rejected": "مرفوض",
+    "expired": "منتهي",
+    "draft": "مسودة"
+  }
+}

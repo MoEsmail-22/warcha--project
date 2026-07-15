@@ -1,1 +1,46 @@
-﻿{}
+﻿{
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "night": "Good night"
+  },
+  "subtitle": "Here's what's happening at your workshop today.",
+  "newBooking": "New booking",
+  "vsYesterday": "vs yesterday",
+  "awaitingApproval": "awaiting approval",
+  "reviews": "reviews",
+  "kpi": {
+    "todaysBookings": "Today's bookings",
+    "carsInService": "Cars in service",
+    "revenueToday": "Revenue today",
+    "avgRating": "Average rating"
+  },
+  "schedule": {
+    "title": "Today's Schedule",
+    "viewAll": "View all",
+    "customer": "Customer",
+    "service": "Service",
+    "time": "Time",
+    "status": "Status"
+  },
+  "revenue": {
+    "title": "Revenue this week",
+    "subtitle": "Daily earnings overview",
+    "totalLabel": "Total this week"
+  },
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "jobs": {
+    "title": "Jobs Board",
+    "subtitle": "Drag cars across stages as you work. Customers see updates live.",
+    "search": "Search bookings, customers, plates...",
+    "filters": "Filters",
+    "quotesPending": "quotes pending"
+  }
+}

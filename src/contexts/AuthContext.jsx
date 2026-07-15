@@ -18,16 +18,18 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const login = async ({ email, password }) => {
+  const login = async ({ email, password: _password }) => {
     // TODO: replace with real API call
+    await Promise.resolve(); // simulates network delay
     const fakeUser = { id: 1, email, name: email.split('@')[0] };
     localStorage.setItem('auth_user', JSON.stringify(fakeUser));
     setUser(fakeUser);
     return fakeUser;
   };
 
-  const register = async ({ name, email, password }) => {
+  const register = async ({ name, email, password: _password }) => {
     // TODO: replace with real API call
+    await Promise.resolve(); // simulates network delay
     const fakeUser = { id: Date.now(), email, name };
     localStorage.setItem('auth_user', JSON.stringify(fakeUser));
     setUser(fakeUser);

@@ -1,1 +1,26 @@
-﻿{}
+﻿{
+  "title": "Quotes",
+  "subtitle": "Send itemized quotes to customers for approval before doing extra work.",
+  "buildQuote": "Build a quote",
+  "buildQuoteSubtitle": "Add line items and send for approval",
+  "customerName": "Customer name",
+  "customerPlaceholder": "Search or enter name",
+  "vehicle": "Vehicle",
+  "lineItems": "Line items",
+  "items": "items",
+  "itemPlaceholder": "Service description",
+  "noItems": "No line items yet. Click \"Add line item\" to start.",
+  "addLineItem": "Add line item",
+  "total": "Total",
+  "sendToCustomer": "Send to customer",
+  "recentQuotes": "Recent quotes",
+  "searchQuotes": "Search quotes...",
+  "noQuotes": "No quotes found.",
+  "status": {
+    "sent": "Sent - awaiting",
+    "accepted": "Approved",
+    "rejected": "Declined",
+    "expired": "Expired",
+    "draft": "Draft"
+  }
+}

@@ -1,1 +1,33 @@
-﻿{}
+﻿{
+  "title": "الحجوزات",
+  "subtitle": "إدارة وجدولة طلبات الخدمة الواردة.",
+  "newBooking": "حجز جديد",
+  "search": "ابحث عن الحجوزات...",
+  "filters": "تصفية",
+  "tabs": {
+    "all": "الكل",
+    "today": "اليوم",
+    "week": "الأسبوع",
+    "month": "الشهر"
+  },
+  "columns": {
+    "bookingid": "رقم الحجز",
+    "customer": "العميل",
+    "vehicle": "المركبة",
+    "service": "الخدمة",
+    "technician": "الفني",
+    "datetime": "التاريخ/الوقت",
+    "status": "الحالة",
+    "actions": "إجراءات"
+  },
+  "showing": "عرض",
+  "of": "من",
+  "noResults": "لا توجد حجوزات.",
+  "status": {
+    "pending": "قيد الانتظار",
+    "confirmed": "مؤكد",
+    "in_progress": "قيد التنفيذ",
+    "completed": "مكتمل",
+    "cancelled": "ملغي"
+  }
+}

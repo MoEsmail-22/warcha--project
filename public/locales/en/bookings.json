@@ -1,1 +1,33 @@
-﻿{}
+﻿{
+  "title": "Bookings",
+  "subtitle": "Manage and schedule incoming service requests.",
+  "newBooking": "New booking",
+  "search": "Search bookings...",
+  "filters": "Filters",
+  "tabs": {
+    "all": "All",
+    "today": "Today",
+    "week": "Week",
+    "month": "Month"
+  },
+  "columns": {
+    "bookingid": "Booking ID",
+    "customer": "Customer",
+    "vehicle": "Vehicle",
+    "service": "Service",
+    "technician": "Technician",
+    "datetime": "Date/Time",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "showing": "Showing",
+  "of": "of",
+  "noResults": "No bookings found.",
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  }
+}

@@ -25,6 +25,41 @@ function getGreeting(hour, t) {
   return t('greeting.night', { defaultValue: 'Good night' });
 }
 
+// Safe accessor — works whether customer is a string (old) or object (new)
+function getCustomerInitials(customer) {
+  if (typeof customer === 'string') {
+    return customer
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  }
+  if (customer && typeof customer === 'object') {
+    return (
+      customer.initials ??
+      customer.name
+        ?.split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2) ??
+      '?'
+    );
+  }
+  return '?';
+}
+
+function getCustomerName(customer) {
+  if (typeof customer === 'string') return customer;
+  return customer?.name ?? 'Unknown';
+}
+
+function getCustomerColor(customer) {
+  if (customer && typeof customer === 'object') return customer.avatarColor ?? '#3B82F6';
+  return '#3B82F6';
+}
+
 export default function DashboardPage() {
   const { t } = useAppTranslation('dashboard');
   const { user } = useAuth();
@@ -52,7 +87,7 @@ export default function DashboardPage() {
               lineHeight: '100%',
             }}
           >
-            {greeting}, {userName}
+            {greeting}, {userName} 👋
           </h1>
           <p
             className="mt-1.5 text-[#5A6968]"
@@ -97,7 +132,6 @@ export default function DashboardPage() {
           trend="up"
           icon={<CalendarCheck className="h-5 w-5 text-[#0E5C5B]" />}
           iconBg="bg-teal-50"
-          className="bg-red-900"
         />
 
         <StatCard
@@ -142,7 +176,7 @@ export default function DashboardPage() {
             </h2>
             <Link
               to="/en/dev/bookings"
-              className="inline-flex items-center gap-1 text-sm font-medium text-[#0E5C5B] hover:underline"
+              className="inline-flex items-center gap-1 rounded-lg border border-gray-300 p-2 text-sm font-medium text-[#0E5C5B] transition-colors hover:bg-gray-100 hover:shadow-sm"
             >
               {t('schedule.viewAll', { defaultValue: 'View all' })}
               <ChevronRight className="h-4 w-4" />
@@ -154,16 +188,19 @@ export default function DashboardPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="pb-3 text-left text-xs font-semibold tracking-wide text-[#5A6968] uppercase">
+                  <th
+                    style={{ fontFamily: "'Sora', sans-serif" }}
+                    className="pb-3 text-left text-xs font-semibold tracking-wide text-[#9AA7A6] uppercase"
+                  >
                     {t('schedule.customer', { defaultValue: 'Customer' })}
                   </th>
-                  <th className="pb-3 text-left text-xs font-semibold tracking-wide text-[#5A6968] uppercase">
+                  <th className="pb-3 text-left text-xs font-semibold tracking-wide text-[#9AA7A6] uppercase">
                     {t('schedule.service', { defaultValue: 'Service' })}
                   </th>
-                  <th className="pb-3 text-left text-xs font-semibold tracking-wide text-[#5A6968] uppercase">
+                  <th className="pb-3 text-left text-xs font-semibold tracking-wide text-[#9AA7A6] uppercase">
                     {t('schedule.time', { defaultValue: 'Time' })}
                   </th>
-                  <th className="pb-3 text-left text-xs font-semibold tracking-wide text-[#5A6968] uppercase">
+                  <th className="pb-3 text-left text-xs font-semibold tracking-wide text-[#9AA7A6] uppercase">
                     {t('schedule.status', { defaultValue: 'Status' })}
                   </th>
                 </tr>
@@ -176,12 +213,15 @@ export default function DashboardPage() {
                   >
                     <td className="py-3.5">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0E5C5B]/10 text-xs font-semibold text-[#0E5C5B]">
-                          {booking.customer.charAt(0)}
+                        <div
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
+                          style={{ backgroundColor: getCustomerColor(booking.customer) }}
+                        >
+                          {getCustomerInitials(booking.customer)}
                         </div>
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium text-[#15201F]">
-                            {booking.customer}
+                            {getCustomerName(booking.customer)}
                           </p>
                           <p className="truncate text-xs text-[#5A6968]">{booking.vehicle}</p>
                         </div>
@@ -220,9 +260,6 @@ export default function DashboardPage() {
               >
                 {t('revenue.title', { defaultValue: 'Revenue this week' })}
               </h2>
-              <p className="mt-0.5 text-xs text-[#5A6968]">
-                {t('revenue.subtitle', { defaultValue: 'Daily earnings overview' })}
-              </p>
             </div>
           </div>
 
