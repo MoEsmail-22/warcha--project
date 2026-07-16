@@ -9,7 +9,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import StatCard from '../../components/widgets/StatCard';
 import RevenueBarChart from '../../components/charts/RevenueBarChart';
 
-// Status badge colors matching your tailwind config
+// Status badge colors
 const statusStyles = {
   pending: 'bg-amber-100 text-amber-700',
   confirmed: 'bg-blue-100 text-blue-700',
@@ -25,7 +25,7 @@ function getGreeting(hour, t) {
   return t('greeting.night', { defaultValue: 'Good night' });
 }
 
-// Safe accessor — works whether customer is a string (old) or object (new)
+// Safe customer accessors
 function getCustomerInitials(customer) {
   if (typeof customer === 'string') {
     return customer
@@ -63,10 +63,25 @@ function getCustomerColor(customer) {
 export default function DashboardPage() {
   const { t } = useAppTranslation('dashboard');
   const { user } = useAuth();
-  const { todaysBookings, todaysCount, difference } = useBookings();
-  const { carsInServiceCount, awaitingApprovalCount } = useVehicles();
-  const { avgRating, totalReviews } = useReviews();
-  const { weeklyRevenue, todayRevenue, revenueChange, currency } = useRevenue();
+
+  // Bookings + Vehicles + Reviews — same as before, with safe fallbacks
+  const { todaysBookings = [], todaysCount = 0, difference = 0 } = useBookings() ?? {};
+  const { carsInServiceCount = 0, awaitingApprovalCount = 0 } = useVehicles() ?? {};
+  const { avgRating = 0, totalReviews = 0 } = useReviews() ?? {};
+
+  // Revenue — REAL shape: { data, loading, error }
+  // data = { summary, comparison, weeklyChart, quickSummary }
+  const { data: revenueData, loading: revenueLoading } = useRevenue() ?? {};
+
+  // Pull fields out of the real nested shape, with safe fallbacks
+  const todayRevenue = revenueData?.summary?.today ?? 0;
+  const revenueChange = revenueData?.comparison?.todayChange ?? 0;
+  const currency = 'EGP'; // not exposed by context, hardcode
+
+  // Pass weeklyChart AS-IS — RevenueBarChart expects { day, current, previous }
+  const weeklyRevenue = Array.isArray(revenueData?.weeklyChart) ? revenueData.weeklyChart : [];
+
+  const weeklyTotal = weeklyRevenue.reduce((sum, d) => sum + (d.current || 0), 0);
 
   const currentHour = new Date().getHours();
   const greeting = getGreeting(currentHour, t);
@@ -74,7 +89,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-      {/* ============ HEADER: Greeting + New Booking button ============ */}
+      {/* ============ HEADER ============ */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1
@@ -105,7 +120,6 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* New Booking button — 126×42px, radius 10px, color #0E5C5B */}
         <button
           className="inline-flex items-center justify-center gap-2 px-4 text-white shadow-sm transition-colors hover:opacity-90"
           style={{
@@ -123,7 +137,7 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* ============ KPI CARDS (4) ============ */}
+      {/* ============ KPI CARDS ============ */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label={t('kpi.todaysBookings', { defaultValue: "Today's bookings" })}
@@ -145,8 +159,8 @@ export default function DashboardPage() {
         <StatCard
           label={t('kpi.revenueToday', { defaultValue: 'Revenue today' })}
           value={`${todayRevenue.toLocaleString()} ${currency}`}
-          change={`+${revenueChange}%`}
-          trend="up"
+          change={`${revenueChange > 0 ? '+' : ''}${revenueChange}%`}
+          trend={revenueChange >= 0 ? 'up' : 'down'}
           icon={<Wallet className="h-5 w-5 text-[#0E5C5B]" />}
           iconBg="bg-teal-50"
         />
@@ -160,9 +174,9 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* ============ TWO-COLUMN: Schedule + Revenue ============ */}
+      {/* ============ TWO-COLUMN ============ */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        {/* ---- Today's Schedule Table ---- (3/5 width ≈ 636px) */}
+        {/* ---- Schedule ---- */}
         <div
           className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm lg:col-span-3"
           style={{ borderRadius: '16px' }}
@@ -175,7 +189,7 @@ export default function DashboardPage() {
               {t('schedule.title', { defaultValue: "Today's Schedule" })}
             </h2>
             <Link
-              to="/en/dev/bookings"
+              to="/en/bookings"
               className="inline-flex items-center gap-1 rounded-lg border border-gray-300 p-2 text-sm font-medium text-[#0E5C5B] transition-colors hover:bg-gray-100 hover:shadow-sm"
             >
               {t('schedule.viewAll', { defaultValue: 'View all' })}
@@ -183,7 +197,6 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -247,7 +260,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ---- Revenue This Week Chart ---- (2/5 width ≈ 398px) */}
+        {/* ---- Revenue Chart ---- */}
         <div
           className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm lg:col-span-2"
           style={{ borderRadius: '16px' }}
@@ -263,21 +276,37 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Total */}
           <div className="mb-4">
-            <p
-              className="text-2xl font-bold text-[#15201F]"
-              style={{ fontFamily: "'Sora', sans-serif" }}
-            >
-              {weeklyRevenue.reduce((sum, d) => sum + d.revenue, 0).toLocaleString()}{' '}
-              <span className="text-sm font-medium text-[#5A6968]">{currency}</span>
-            </p>
-            <p className="mt-0.5 text-xs text-green-600">
-              {t('revenue.totalLabel', { defaultValue: 'Total this week' })}
-            </p>
+            {revenueLoading ? (
+              <p
+                className="text-2xl font-bold text-gray-300"
+                style={{ fontFamily: "'Sora', sans-serif" }}
+              >
+                ...
+              </p>
+            ) : (
+              <>
+                <p
+                  className="text-2xl font-bold text-[#15201F]"
+                  style={{ fontFamily: "'Sora', sans-serif" }}
+                >
+                  {weeklyTotal.toLocaleString()}{' '}
+                  <span className="text-sm font-medium text-[#5A6968]">{currency}</span>
+                </p>
+                <p className="mt-0.5 text-xs text-green-600">
+                  {t('revenue.totalLabel', { defaultValue: 'Total this week' })}
+                </p>
+              </>
+            )}
           </div>
 
-          <RevenueBarChart data={weeklyRevenue} />
+          {revenueLoading ? (
+            <div className="flex h-[260px] items-center justify-center text-sm text-gray-400">
+              Loading chart...
+            </div>
+          ) : (
+            <RevenueBarChart data={weeklyRevenue} />
+          )}
         </div>
       </div>
     </div>

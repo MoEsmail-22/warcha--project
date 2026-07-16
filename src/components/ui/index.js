@@ -6,5 +6,5 @@ export { Input } from './Input';
 export { Select } from './Select';
 export { Toggle } from './Toggle';
 export { Modal } from './Modal';
-export { Drawer } from './Drawer';
+export { default as Drawer } from './Drawer';
 export { Table, THead, TBody, TR, TH, TD } from './Table';
