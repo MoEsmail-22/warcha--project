@@ -13,13 +13,14 @@
  *
  * Used by: RevenuePage, DashboardPage.
  */
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect, useMemo } from 'react';
 import mockRevenue from '@/mocks/revenue.json';
 
 const RevenueContext = createContext(null);
 
 const initialState = {
   data: null,
+  rawRecords: null,
   loading: true,
   error: null,
 };
@@ -27,7 +28,12 @@ const initialState = {
 function reducer(state, action) {
   switch (action.type) {
     case 'LOAD_SUCCESS':
-      return { data: action.payload, loading: false, error: null };
+      return {
+        data: action.payload.data,
+        rawRecords: action.payload.rawRecords,
+        loading: false,
+        error: null,
+      };
     case 'LOAD_ERROR':
       return { ...state, loading: false, error: action.payload };
     default:
@@ -38,30 +44,118 @@ function reducer(state, action) {
 // ===== Transformation helpers =====
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const RANGE_DAYS = {
+  last7: 7,
+  last30: 30,
+  last90: 90,
+};
+
+// Convert YYYY-MM-DD strings into local Date objects so month math does not shift across time zones.
+const toDate = (dateString) => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
+// Convert Date objects back into YYYY-MM-DD strings for stable comparisons with mock data keys.
+const toDateKey = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate()
+  ).padStart(2, '0')}`;
+
+// Move a date by whole days while keeping the original date object untouched.
+const addDays = (date, days) => {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+};
+
+const startOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1);
+const endOfMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+function getRangeBounds(range, latestDate) {
+  // "This month" ends at the latest available mock record, which acts as today in this dataset.
+  if (range === 'thisMonth') {
+    return {
+      start: startOfMonth(latestDate),
+      end: latestDate,
+    };
+  }
+
+  // "Last month" uses full calendar-month boundaries before the latest available date.
+  if (range === 'lastMonth') {
+    const lastMonthDate = new Date(latestDate.getFullYear(), latestDate.getMonth() - 1, 1);
+    return {
+      start: startOfMonth(lastMonthDate),
+      end: endOfMonth(lastMonthDate),
+    };
+  }
+
+  const days = RANGE_DAYS[range] || RANGE_DAYS.last30;
+  return {
+    start: addDays(latestDate, -(days - 1)),
+    end: latestDate,
+  };
+}
+
+function filterRecordsByBounds(records, bounds) {
+  // Dates are stored as YYYY-MM-DD, so string comparison is safe after formatting the bounds.
+  const startKey = toDateKey(bounds.start);
+  const endKey = toDateKey(bounds.end);
+  return records.filter((record) => record.date >= startKey && record.date <= endKey);
+}
+
+function getPreviousRangeRecords(records, bounds) {
+  // Match the comparison period length exactly, then place it immediately before the selected range.
+  const daysInRange =
+    Math.round((bounds.end.getTime() - bounds.start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const previousEnd = addDays(bounds.start, -1);
+  const previousStart = addDays(previousEnd, -(daysInRange - 1));
+
+  return filterRecordsByBounds(records, {
+    start: previousStart,
+    end: previousEnd,
+  });
+}
+
+function sum(records, key) {
+  // Keep all total calculations in one tiny helper so the summary math reads clearly below.
+  return records.reduce((total, record) => total + record[key], 0);
+}
+
+function percentChange(current, previous) {
+  // Avoid dividing by zero when there is no matching previous-period data in the mock file.
+  return previous > 0 ? Math.round(((current - previous) / previous) * 1000) / 10 : 0;
+}
 
 /**
  * Transform the raw daily array into the structured object the page expects.
  * This is where the "backend aggregation" happens on the frontend.
  */
-function transformRevenue(dailyRecords) {
+export function transformRevenue(dailyRecords, range = 'last30') {
   if (!dailyRecords || !dailyRecords.length) return null;
 
   // Sort by date ascending (oldest first)
   const sorted = [...dailyRecords].sort((a, b) => a.date.localeCompare(b.date));
-  const today = sorted[sorted.length - 1];
-  const yesterday = sorted[sorted.length - 2];
+  const latestDate = toDate(sorted[sorted.length - 1].date);
+  const bounds = getRangeBounds(range, latestDate);
+  // Build the selected range first; if a range has no records, fall back to all mock data.
+  const selected = filterRecordsByBounds(sorted, bounds);
+  const currentRecords = selected.length ? selected : sorted;
+  const previousRecords = getPreviousRangeRecords(sorted, bounds);
+  const today = currentRecords[currentRecords.length - 1];
+  const yesterday = sorted[sorted.findIndex((record) => record.date === today.date) - 1];
 
   // ===== Summary =====
-  const totalIncome = sorted.reduce((sum, r) => sum + r.income, 0);
-  const totalBookings = sorted.reduce((sum, r) => sum + r.bookings, 0);
-  const totalProfit = sorted.reduce((sum, r) => sum + r.profit, 0);
+  const totalIncome = sum(currentRecords, 'income');
+  const totalBookings = sum(currentRecords, 'bookings');
+  const totalProfit = sum(currentRecords, 'profit');
+  const previousIncome = sum(previousRecords, 'income');
+  const previousBookings = sum(previousRecords, 'bookings');
 
-  // Last 30 days for "monthly" (or all records if fewer than 30)
-  const last30 = sorted.slice(-30);
-  const monthIncome = last30.reduce((sum, r) => sum + r.income, 0);
-
-  // Avg order value across all records
+  // Avg order value across the selected period
   const avgOrderValue = totalBookings > 0 ? Math.round(totalIncome / totalBookings) : 0;
+  const previousAvgOrderValue =
+    previousBookings > 0 ? Math.round(previousIncome / previousBookings) : 0;
 
   // Outstanding — not in the raw data, use a reasonable placeholder
   // (in a real backend this would come from an invoices table)
@@ -72,36 +166,19 @@ function transformRevenue(dailyRecords) {
   const profitMargin = totalIncome > 0 ? Math.round((totalProfit / totalIncome) * 100) : 0;
 
   // ===== Comparison (percentage changes) =====
-  const todayChange =
-    yesterday && yesterday.income > 0
-      ? Math.round(((today.income - yesterday.income) / yesterday.income) * 1000) / 10
-      : 0;
+  const todayChange = yesterday ? percentChange(today.income, yesterday.income) : 0;
+  const monthChange = percentChange(totalIncome, previousIncome);
+  const avgOrderChange = percentChange(avgOrderValue, previousAvgOrderValue);
 
-  // Month change: compare last 30 days vs previous 30 days
-  const previous30 = sorted.slice(-60, -30);
-  const previousMonthIncome = previous30.reduce((sum, r) => sum + r.income, 0);
-  const monthChange =
-    previousMonthIncome > 0
-      ? Math.round(((monthIncome - previousMonthIncome) / previousMonthIncome) * 1000) / 10
-      : 0;
-
-  // Avg order change: compare last 7 days avg vs previous 7 days avg
-  const last7 = sorted.slice(-7);
-  const previous7 = sorted.slice(-14, -7);
-  const last7Avg =
-    last7.reduce((s, r) => s + r.income, 0) / (last7.reduce((s, r) => s + r.bookings, 0) || 1);
-  const prev7Avg =
-    previous7.reduce((s, r) => s + r.income, 0) /
-    (previous7.reduce((s, r) => s + r.bookings, 0) || 1);
-  const avgOrderChange =
-    prev7Avg > 0 ? Math.round(((last7Avg - prev7Avg) / prev7Avg) * 1000) / 10 : 0;
-
-  // ===== Weekly chart (last 7 days with current vs previous week) =====
-  const weeklyChart = last7.map((record, i) => {
+  // ===== Period chart with current vs previous matching period =====
+  const weeklyChart = currentRecords.map((record, i) => {
     const date = new Date(record.date);
-    const prevRecord = previous7[i];
+    const prevRecord = previousRecords[i];
     return {
-      day: DAY_NAMES[date.getDay()],
+      day:
+        currentRecords.length > 14
+          ? `${date.getMonth() + 1}/${date.getDate()}`
+          : DAY_NAMES[date.getDay()],
       current: record.income,
       previous: prevRecord ? prevRecord.income : 0,
     };
@@ -109,7 +186,10 @@ function transformRevenue(dailyRecords) {
 
   // ===== Quick Summary =====
   // Highest revenue day
-  const highestRecord = sorted.reduce((max, r) => (r.income > max.income ? r : max), sorted[0]);
+  const highestRecord = currentRecords.reduce(
+    (max, r) => (r.income > max.income ? r : max),
+    currentRecords[0]
+  );
   const highestDate = new Date(highestRecord.date);
   const highestRevenueDay = {
     day: DAY_NAMES[highestDate.getDay()],
@@ -117,7 +197,7 @@ function transformRevenue(dailyRecords) {
   };
 
   // Avg daily revenue
-  const avgDailyRevenue = Math.round(totalIncome / sorted.length);
+  const avgDailyRevenue = Math.round(totalIncome / currentRecords.length);
 
   // Top selling service — not in revenue.json, use a placeholder
   // (would come from services or bookings aggregation in a real backend)
@@ -128,9 +208,16 @@ function transformRevenue(dailyRecords) {
   };
 
   return {
+    range,
+    rangeLabel: {
+      start: toDateKey(bounds.start),
+      end: toDateKey(bounds.end),
+    },
+    records: currentRecords,
+    previousRecords,
     summary: {
       today: today.income,
-      month: monthIncome,
+      month: totalIncome,
       avgOrderValue,
       outstanding,
       outstandingInvoices,
@@ -157,8 +244,10 @@ export function RevenueProvider({ children }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
-        const transformed = transformRevenue(mockRevenue);
-        dispatch({ type: 'LOAD_SUCCESS', payload: transformed });
+        // The dashboard consumes the default context data for its "Revenue this week" chart.
+        // Keep that default as the last 7 days; RevenuePage asks for its own selected range.
+        const transformed = transformRevenue(mockRevenue, 'last7');
+        dispatch({ type: 'LOAD_SUCCESS', payload: { data: transformed, rawRecords: mockRevenue } });
       } catch (err) {
         dispatch({ type: 'LOAD_ERROR', payload: err.message });
       }
@@ -166,7 +255,13 @@ export function RevenueProvider({ children }) {
     return () => clearTimeout(timer);
   }, []);
 
-  const value = { ...state };
+  const value = useMemo(
+    () => ({
+      ...state,
+      getRevenueByRange: (range) => transformRevenue(state.rawRecords, range),
+    }),
+    [state]
+  );
 
   return <RevenueContext.Provider value={value}>{children}</RevenueContext.Provider>;
 }

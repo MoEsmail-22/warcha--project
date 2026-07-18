@@ -67,7 +67,7 @@ function formatYAxis(value, isArabic) {
   return new Intl.NumberFormat(locale).format(Math.round(value));
 }
 
-export function RevenueComparisonChart({ data = [] }) {
+export function RevenueComparisonChart({ data = [], title }) {
   const { isRTL } = useLanguage();
   // Detect Arabic from the <html> lang attribute
   const isArabic = typeof document !== 'undefined' && document.documentElement.lang === 'ar';
@@ -76,7 +76,7 @@ export function RevenueComparisonChart({ data = [] }) {
     <div className="card p-6">
       <div className="mb-6 flex items-center justify-between">
         <h3 className="text-base font-semibold text-gray-900">
-          {isArabic ? 'مقارنة الإيرادات' : 'Revenue Comparison'}
+          {title || (isArabic ? 'مقارنة الإيرادات' : 'Revenue Comparison')}
         </h3>
       </div>
 

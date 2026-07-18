@@ -59,6 +59,7 @@
     "reviews": "reviews",
     "awaitingApproval": "awaiting approval",
     "capacity": "capacity",
-    "vsLastWeek": "vs last week"
+    "vsLastWeek": "vs last week",
+    "vsPreviousPeriod": "vs previous period"
   }
 }

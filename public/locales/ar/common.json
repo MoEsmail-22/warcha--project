@@ -59,6 +59,7 @@
     "reviews": "تقييم",
     "awaitingApproval": "بانتظار الموافقة",
     "capacity": "السعة",
-    "vsLastWeek": "عن الأسبوع الماضي"
+    "vsLastWeek": "عن الأسبوع الماضي",
+    "vsPreviousPeriod": "عن الفترة السابقة"
   }
 }
