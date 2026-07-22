@@ -1,33 +1,19 @@
 /**
- * RevenueContext — provides revenue analytics data.
- *
- * Transforms the raw daily records from revenue.json (array of
- * { date, bookings, completedJobs, income, expenses, profit }) into
- * the shape the RevenuePage expects:
- *   {
- *     summary: { today, month, avgOrderValue, outstanding, profitMargin },
- *     comparison: { todayChange, monthChange, avgOrderChange },
- *     weeklyChart: [{ day, current, previous }],
- *     quickSummary: { highestRevenueDay, avgDailyRevenue, profitMargin }
- *   }
- *
- * Used by: RevenuePage, DashboardPage.
+ * RevenueContext keeps the raw daily revenue records available to consumers.
+ * Aggregation is exported separately so the Revenue page can recalculate every
+ * card and chart whenever the user changes a preset or custom date range.
  */
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useEffect, useReducer } from 'react';
 import mockRevenue from '@/mocks/revenue.json';
 
 const RevenueContext = createContext(null);
-
-const initialState = {
-  data: null,
-  loading: true,
-  error: null,
-};
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const initialState = { records: [], loading: true, error: null };
 
 function reducer(state, action) {
   switch (action.type) {
     case 'LOAD_SUCCESS':
-      return { data: action.payload, loading: false, error: null };
+      return { records: action.payload, loading: false, error: null };
     case 'LOAD_ERROR':
       return { ...state, loading: false, error: action.payload };
     default:
@@ -35,120 +21,186 @@ function reducer(state, action) {
   }
 }
 
-// ===== Transformation helpers =====
-
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const toISODate = (date) => date.toISOString().slice(0, 10);
 
 /**
- * Transform the raw daily array into the structured object the page expects.
- * This is where the "backend aggregation" happens on the frontend.
+ * The supplied JSON only has 15 days. Build a deterministic 180-day demo
+ * history so the 90-day preset and prior-period comparisons contain data.
+ * Existing JSON rows always win, making this easy to replace with API data.
  */
-function transformRevenue(dailyRecords) {
-  if (!dailyRecords || !dailyRecords.length) return null;
+function buildDemoHistory(seedRecords, totalDays = 180) {
+  const byDate = new Map(seedRecords.map((record) => [record.date, record]));
+  const lastDate = new Date(`${seedRecords.at(-1).date}T00:00:00`);
 
-  // Sort by date ascending (oldest first)
-  const sorted = [...dailyRecords].sort((a, b) => a.date.localeCompare(b.date));
-  const today = sorted[sorted.length - 1];
-  const yesterday = sorted[sorted.length - 2];
+  for (let offset = 0; offset < totalDays; offset += 1) {
+    const date = new Date(lastDate);
+    date.setDate(lastDate.getDate() - offset);
+    const key = toISODate(date);
+    if (byDate.has(key)) continue;
 
-  // ===== Summary =====
-  const totalIncome = sorted.reduce((sum, r) => sum + r.income, 0);
-  const totalBookings = sorted.reduce((sum, r) => sum + r.bookings, 0);
-  const totalProfit = sorted.reduce((sum, r) => sum + r.profit, 0);
+    // Repeatable variation makes the mock chart realistic without random data.
+    const bookings = 4 + ((offset * 7 + date.getDay() * 3) % 10);
+    const income = bookings * (680 + ((offset * 137) % 520));
+    const expenses = Math.round(income * (0.31 + (offset % 8) / 100));
+    byDate.set(key, {
+      date: key,
+      bookings,
+      completedJobs: Math.max(1, bookings - (offset % 3)),
+      income,
+      expenses,
+      profit: income - expenses,
+    });
+  }
 
-  // Last 30 days for "monthly" (or all records if fewer than 30)
-  const last30 = sorted.slice(-30);
-  const monthIncome = last30.reduce((sum, r) => sum + r.income, 0);
+  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
 
-  // Avg order value across all records
-  const avgOrderValue = totalBookings > 0 ? Math.round(totalIncome / totalBookings) : 0;
+const percentChange = (current, previous) =>
+  previous > 0 ? Math.round(((current - previous) / previous) * 1000) / 10 : 0;
 
-  // Outstanding — not in the raw data, use a reasonable placeholder
-  // (in a real backend this would come from an invoices table)
-  const outstanding = 14000;
-  const outstandingInvoices = 14;
+/** Aggregate one selected range and an equally-sized preceding range. */
+export function aggregateRevenue(selectedRecords, previousRecords = [], options = {}) {
+  if (!selectedRecords.length) return null;
 
-  // Profit margin %
-  const profitMargin = totalIncome > 0 ? Math.round((totalProfit / totalIncome) * 100) : 0;
+  const total = (records, key) => records.reduce((sum, record) => sum + record[key], 0);
+  const currentIncome = total(selectedRecords, 'income');
+  const previousIncome = total(previousRecords, 'income');
+  const currentBookings = total(selectedRecords, 'bookings');
+  const previousBookings = total(previousRecords, 'bookings');
+  const currentProfit = total(selectedRecords, 'profit');
+  const latest = selectedRecords.at(-1);
+  const priorDay = selectedRecords.at(-2) || previousRecords.at(-1);
+  const currentAverage = currentBookings ? currentIncome / currentBookings : 0;
+  const previousAverage = previousBookings ? previousIncome / previousBookings : 0;
 
-  // ===== Comparison (percentage changes) =====
-  const todayChange =
-    yesterday && yesterday.income > 0
-      ? Math.round(((today.income - yesterday.income) / yesterday.income) * 1000) / 10
-      : 0;
+  const highest = selectedRecords.reduce(
+    (best, record) => (record.income > best.income ? record : best),
+    selectedRecords[0]
+  );
 
-  // Month change: compare last 30 days vs previous 30 days
-  const previous30 = sorted.slice(-60, -30);
-  const previousMonthIncome = previous30.reduce((sum, r) => sum + r.income, 0);
-  const monthChange =
-    previousMonthIncome > 0
-      ? Math.round(((monthIncome - previousMonthIncome) / previousMonthIncome) * 1000) / 10
-      : 0;
-
-  // Avg order change: compare last 7 days avg vs previous 7 days avg
-  const last7 = sorted.slice(-7);
-  const previous7 = sorted.slice(-14, -7);
-  const last7Avg =
-    last7.reduce((s, r) => s + r.income, 0) / (last7.reduce((s, r) => s + r.bookings, 0) || 1);
-  const prev7Avg =
-    previous7.reduce((s, r) => s + r.income, 0) /
-    (previous7.reduce((s, r) => s + r.bookings, 0) || 1);
-  const avgOrderChange =
-    prev7Avg > 0 ? Math.round(((last7Avg - prev7Avg) / prev7Avg) * 1000) / 10 : 0;
-
-  // ===== Weekly chart (last 7 days with current vs previous week) =====
-  const weeklyChart = last7.map((record, i) => {
-    const date = new Date(record.date);
-    const prevRecord = previous7[i];
-    return {
-      day: DAY_NAMES[date.getDay()],
-      current: record.income,
-      previous: prevRecord ? prevRecord.income : 0,
-    };
-  });
-
-  // ===== Quick Summary =====
-  // Highest revenue day
-  const highestRecord = sorted.reduce((max, r) => (r.income > max.income ? r : max), sorted[0]);
-  const highestDate = new Date(highestRecord.date);
-  const highestRevenueDay = {
-    day: DAY_NAMES[highestDate.getDay()],
-    amount: highestRecord.income,
-  };
-
-  // Avg daily revenue
-  const avgDailyRevenue = Math.round(totalIncome / sorted.length);
-
-  // Top selling service — not in revenue.json, use a placeholder
-  // (would come from services or bookings aggregation in a real backend)
-  const topSellingService = {
-    name: 'Oil change',
-    revenue: 45000,
-    count: 128,
-  };
+  // Chart granularity follows report length: daily (up to 31 days), weekly
+  // (32–89 days), and monthly (the 90-day report). Matching prior-period
+  // buckets are kept at the same position for a fair comparison.
+  const chartData =
+    options.granularity === 'monthly'
+      ? buildMonthlyChart(selectedRecords, previousRecords)
+      : options.granularity === 'weekly'
+        ? buildWeeklyChart(selectedRecords, previousRecords)
+        : selectedRecords.map((record, index) => ({
+            day:
+              selectedRecords.length <= 14
+                ? DAY_NAMES[new Date(`${record.date}T00:00:00`).getDay()]
+                : record.date.slice(5),
+            current: record.income,
+            previous: previousRecords[index]?.income || 0,
+          }));
 
   return {
     summary: {
-      today: today.income,
-      month: monthIncome,
-      avgOrderValue,
-      outstanding,
-      outstandingInvoices,
-      profitMargin,
+      today: latest.income,
+      month: currentIncome,
+      avgOrderValue: Math.round(currentAverage),
+      outstanding: Math.round(currentIncome * 0.08),
+      outstandingInvoices: Math.max(1, Math.round(currentBookings * 0.08)),
+      profitMargin: currentIncome ? Math.round((currentProfit / currentIncome) * 100) : 0,
     },
     comparison: {
-      todayChange,
-      monthChange,
-      avgOrderChange,
+      todayChange: percentChange(latest.income, priorDay?.income || 0),
+      monthChange: percentChange(currentIncome, previousIncome),
+      avgOrderChange: percentChange(currentAverage, previousAverage),
     },
-    weeklyChart,
+    weeklyChart: chartData,
     quickSummary: {
-      highestRevenueDay,
-      avgDailyRevenue,
-      profitMargin,
-      topSellingService,
+      highestRevenueDay: {
+        day: new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(
+          new Date(`${highest.date}T00:00:00`)
+        ),
+        amount: highest.income,
+      },
+      avgDailyRevenue: Math.round(currentIncome / selectedRecords.length),
+      profitMargin: currentIncome ? Math.round((currentProfit / currentIncome) * 100) : 0,
+      topSellingService: {
+        name: 'Oil change',
+        revenue: Math.round(currentIncome * 0.28),
+        count: Math.round(currentBookings * 0.32),
+      },
     },
+    // Demo breakdowns update with the selected total. Replace this helper with
+    // service/payment fields from the API once transaction-level data exists.
+    breakdowns: buildRevenueBreakdowns(currentIncome),
   };
+}
+
+function buildRevenueBreakdowns(totalIncome) {
+  const amountFor = (share) => Math.round(totalIncome * share);
+  return {
+    serviceRevenue: [
+      { name: 'Mechanical Repair', revenue: amountFor(0.44) },
+      { name: 'Oil & Filter', revenue: amountFor(0.29) },
+      { name: 'Brake Service', revenue: amountFor(0.16) },
+      { name: 'Diagnostics', revenue: amountFor(0.11) },
+    ],
+    paymentMethods: [
+      { name: 'Cash', value: amountFor(0.7), color: '#004B46' },
+      { name: 'Card', value: amountFor(0.2), color: '#1158D8' },
+      { name: 'Installments', value: amountFor(0.1), color: '#FFD5A6' },
+    ],
+  };
+}
+
+function buildMonthlyChart(selectedRecords, previousRecords) {
+  const groupByMonth = (records) =>
+    records.reduce((groups, record) => {
+      const monthKey = record.date.slice(0, 7);
+      const group = groups.at(-1);
+      if (group?.key === monthKey) {
+        group.income += record.income;
+      } else {
+        groups.push({
+          key: monthKey,
+          label: new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' }).format(
+            new Date(`${monthKey}-01T00:00:00`)
+          ),
+          income: record.income,
+        });
+      }
+      return groups;
+    }, []);
+
+  const currentMonths = groupByMonth(selectedRecords);
+  const previousMonths = groupByMonth(previousRecords);
+  return currentMonths.map((month, index) => ({
+    day: month.label,
+    current: month.income,
+    previous: previousMonths[index]?.income || 0,
+  }));
+}
+
+function buildWeeklyChart(selectedRecords, previousRecords) {
+  // Split from the selected start date into seven-day blocks. This avoids
+  // partial calendar weeks and makes current/previous blocks line up exactly.
+  const groupIntoWeeks = (records) => {
+    const weeks = [];
+    for (let index = 0; index < records.length; index += 7) {
+      const week = records.slice(index, index + 7);
+      weeks.push({
+        label:
+          week.length === 1
+            ? week[0].date.slice(5)
+            : `${week[0].date.slice(5)}–${week.at(-1).date.slice(5)}`,
+        income: week.reduce((sum, record) => sum + record.income, 0),
+      });
+    }
+    return weeks;
+  };
+
+  const currentWeeks = groupIntoWeeks(selectedRecords);
+  const previousWeeks = groupIntoWeeks(previousRecords);
+  return currentWeeks.map((week, index) => ({
+    day: week.label,
+    current: week.income,
+    previous: previousWeeks[index]?.income || 0,
+  }));
 }
 
 export function RevenueProvider({ children }) {
@@ -157,8 +209,7 @@ export function RevenueProvider({ children }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
-        const transformed = transformRevenue(mockRevenue);
-        dispatch({ type: 'LOAD_SUCCESS', payload: transformed });
+        dispatch({ type: 'LOAD_SUCCESS', payload: buildDemoHistory(mockRevenue) });
       } catch (err) {
         dispatch({ type: 'LOAD_ERROR', payload: err.message });
       }
@@ -166,13 +217,30 @@ export function RevenueProvider({ children }) {
     return () => clearTimeout(timer);
   }, []);
 
-  const value = { ...state };
+  const records = state.records;
+  const data = records.length
+    ? aggregateRevenue(records.slice(-30), records.slice(-60, -30))
+    : null;
+  // Dashboard analytics are deliberately fixed to the newest seven days.
+  // Keeping this separate prevents Revenue-page report filters (7/30/90/custom)
+  // from changing the Dashboard's "Revenue this week" chart or KPI values.
+  const dashboardData = records.length
+    ? aggregateRevenue(records.slice(-7), records.slice(-14, -7))
+    : null;
+  const value = {
+    ...state,
+    data,
+    dashboardData,
+    records,
+    minDate: records[0]?.date || '',
+    maxDate: records.at(-1)?.date || '',
+  };
 
   return <RevenueContext.Provider value={value}>{children}</RevenueContext.Provider>;
 }
 
 export function useRevenue() {
-  const ctx = useContext(RevenueContext);
-  if (!ctx) throw new Error('useRevenue must be used inside a <RevenueProvider>');
-  return ctx;
+  const context = useContext(RevenueContext);
+  if (!context) throw new Error('useRevenue must be used inside a <RevenueProvider>');
+  return context;
 }

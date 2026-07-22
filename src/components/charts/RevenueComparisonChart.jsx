@@ -1,5 +1,6 @@
 /**
- * RevenueComparisonChart — daily revenue bars comparing current vs previous month.
+ * RevenueComparisonChart — daily revenue bars comparing the selected range
+ * with the immediately preceding range of the same length.
  *
  * Phase 5 chart: two series (Current Month dark teal / Previous Month light gray)
  * with legend, custom tooltip (EGP), RTL-aware, bilingual.
@@ -36,16 +37,16 @@ function CustomTooltip({ active, payload, label, isArabic }) {
       <p className="mb-1 text-xs font-medium text-gray-900">{label}</p>
       {payload.map((entry) => {
         const formatted = new Intl.NumberFormat(locale).format(entry.value);
-        const labelKey = entry.dataKey === 'current' ? 'currentMonth' : 'previousMonth';
+        const labelKey = entry.dataKey === 'current' ? 'currentPeriod' : 'previousPeriod';
         return (
           <p key={entry.dataKey} className="text-xs font-medium" style={{ color: entry.color }}>
             {isArabic
-              ? labelKey === 'currentMonth'
-                ? 'الشهر الحالي'
-                : 'الشهر الماضي'
-              : labelKey === 'currentMonth'
-                ? 'Current Month'
-                : 'Previous Month'}
+              ? labelKey === 'currentPeriod'
+                ? 'الفترة المحددة'
+                : 'الفترة السابقة'
+              : labelKey === 'currentPeriod'
+                ? 'Selected period'
+                : 'Previous period'}
             : {currency} {formatted}
           </p>
         );
@@ -111,9 +112,9 @@ export function RevenueComparisonChart({ data = [] }) {
             wrapperStyle={{ fontSize: '12px', paddingTop: '16px' }}
             formatter={(value) => {
               if (value === 'current') {
-                return isArabic ? 'الشهر الحالي' : 'Current Month';
+                return isArabic ? 'الفترة المحددة' : 'Selected period';
               }
-              return isArabic ? 'الشهر الماضي' : 'Previous Month';
+              return isArabic ? 'الفترة السابقة' : 'Previous period';
             }}
           />
           <Bar

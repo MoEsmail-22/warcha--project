@@ -69,9 +69,9 @@ export default function DashboardPage() {
   const { carsInServiceCount = 0, awaitingApprovalCount = 0 } = useVehicles() ?? {};
   const { avgRating = 0, totalReviews = 0 } = useReviews() ?? {};
 
-  // Revenue — REAL shape: { data, loading, error }
-  // data = { summary, comparison, weeklyChart, quickSummary }
-  const { data: revenueData, loading: revenueLoading } = useRevenue() ?? {};
+  // Dashboard uses its own fixed seven-day aggregate. The Revenue page builds
+  // independent reports, so changing its date selection cannot affect this view.
+  const { dashboardData: revenueData, loading: revenueLoading } = useRevenue() ?? {};
 
   // Pull fields out of the real nested shape, with safe fallbacks
   const todayRevenue = revenueData?.summary?.today ?? 0;
